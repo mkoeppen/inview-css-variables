@@ -1,6 +1,6 @@
 {
   "name": "inview-css-variables",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A script to set css variables and data attributes to a dom element if this is visible in the viewport.",
   "main": "src/inview-css-variables.js",
   "scripts": {
