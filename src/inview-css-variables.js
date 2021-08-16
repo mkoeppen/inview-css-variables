@@ -28,6 +28,11 @@ export default class InViewCssVariables {
     window.addEventListener('resize', (e) => {
       this.checkAllElements();
     })
+    
+    // refresh calculation after resize
+    document.addEventListener('inview-css-variables', (e) => {
+      this.checkAllElements();
+    })
   }
 
   checkAllElements() {
@@ -46,6 +51,37 @@ export default class InViewCssVariables {
     }
   }
 
+  isVisible(element) {
+    const clientRect = element.getBoundingClientRect();
+
+    if (element.offsetWidth + element.offsetHeight + clientRect.height + clientRect.width === 0) {
+        return false;
+    }
+    const elemCenter = {
+        start: clientRect.top,
+        center: clientRect.top + element.offsetHeight / 2,
+        end: clientRect.top + element.offsetHeight
+    };
+    if (elemCenter.end < 0) return false;
+    if (elemCenter.start > (document.documentElement.clientHeight || window.innerHeight)) return false;
+    // start
+    let pointContainer = document.elementFromPoint(clientRect.left, elemCenter.start);
+    do {
+        if (pointContainer === element) return true;
+    } while (pointContainer && (pointContainer = pointContainer.parentNode));
+    // center
+    pointContainer = document.elementFromPoint(clientRect.left + element.offsetWidth / 2, elemCenter.center);
+    do {
+        if (pointContainer === element) return true;
+    } while (pointContainer && (pointContainer = pointContainer.parentNode));
+    // bottom
+    pointContainer = document.elementFromPoint(clientRect.left + element.offsetWidth, elemCenter.end);
+    do {
+        if (pointContainer === element) return true;
+    } while (pointContainer && (pointContainer = pointContainer.parentNode));
+    return false;
+  }
+
   checkSingleElement(element, viewport) {
     // get element position
     const elementTop = this.getOffsetTop(element);
@@ -54,10 +90,7 @@ export default class InViewCssVariables {
 
     // check if element was in view
     const wasInView = element.dataset.wasInView || false;
-
-    const topAboveViewportBottom = elementTop <= viewport.bottomOffset;
-    const bottomBelowViewportTop = elementBottom >= viewport.topOffset;
-    const isInView = topAboveViewportBottom && bottomBelowViewportTop;
+    const isInView = this.isVisible(element);
 
     // is currently visible
     element.dataset.isInView = isInView;
